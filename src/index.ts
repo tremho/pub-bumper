@@ -155,6 +155,7 @@ function commitChanges(comment:string, gitTag?:string) {
 }
 
 function npmPublish() {
+    console.log(ac.italic.green('Publishing to NPM'))
     process.chdir(workingDirectory)
     return executeCommand('npm publish',[]).then((rt:any) => {
         if(rt.errStr) {
