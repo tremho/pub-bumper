@@ -154,6 +154,18 @@ function commitChanges(comment:string, gitTag?:string) {
     })
 }
 
+function npmPublish() {
+    process.chdir(workingDirectory)
+    return executeCommand('npm publish',[]).then((rt:any) => {
+        if(rt.errStr) {
+            console.error(ac.red(rt.errStr))
+            process.exit(4)
+        } else if(rt.stdStr) {
+            console.log(ac.grey(rt.stdStr))
+        }
+    })
+}
+
 /**
  * Read the configuration of project directories
  * and the preferred pre-release tag
@@ -246,6 +258,7 @@ function parseCLI(args:string[]) {
 }
 
 function doProcess(mode:string) {
+    let p = Promise.resolve()
     const status = checkRepoStatus()
     if(status === 'X') {
         console.error(ac.red('no repository!'))
@@ -268,10 +281,12 @@ function doProcess(mode:string) {
             comment = 'no commit message: '+dt.getFullYear()+'-'+dt.getMonth()+'-'+dt.getDate()
         }
         commitChanges(comment, gitTag)
+        p = npmPublish()
 
     } else {
         console.log(ac.grey.dim.italic('nothing to commit in '+workingDirectory))
     }
+    return p
 }
 
 const mode:string = parseCLI(process.argv.slice(2))
@@ -287,8 +302,10 @@ execute(mode, comment,configPath || '.', preReleaseTag)
  * @param {string} gitComment The git commit comment to apply
  * @param {string|object} configPathOrObject a path to a config file (json), or a config object with {preReleaseTag, projectDirs}
  * @param {string} [pre] optional alternate pre-release tag to use other than configuration or default
- */
-export function execute(mode:string, gitComment:string, configPathOrObject:string|object, preTag?:string) {
+ *
+ * @return {Promise<unknown>} Promise resolves when execution is complete
+  */
+export function execute(mode:string, gitComment:string, configPathOrObject:string|object, preTag?:string):Promise<unknown> {
     if(typeof configPathOrObject === 'string') {
         readConfiguration(configPathOrObject)
         workingDirectory = path.dirname(configPathOrObject)
@@ -299,13 +316,23 @@ export function execute(mode:string, gitComment:string, configPathOrObject:strin
     comment = gitComment
     if(preTag) preReleaseTag = preTag
     const dirs = (config && config.projectDirs) || [ '.' ]
-    for(let d of dirs) {
+
+    const recurse = (i:number = 0):Promise<unknown> => {
+        const d = dirs[i]
+        if(!d) {
+            return Promise.resolve()
+        }
         const dr = path.resolve(d)
         if (!fs.existsSync(dr)) {
             console.error(ac.red(`Project Directory ${dr} specified in configuration file ${configPath} does not exist`))
             process.exit(2)
         }
         workingDirectory = dr
-        doProcess(mode)
+        return doProcess(mode).then(() =>{
+            return recurse(++i)
+        })
+
     }
+    return recurse()
+
 }

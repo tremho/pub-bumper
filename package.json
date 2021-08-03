@@ -1,6 +1,6 @@
 {
   "name": "@tremho/pub-bumper",
-  "version": "0.0.0",
+  "version": "0.0.1-pre-release.1",
   "description": "Intelligent version bumping for a related suite of modules in development",
   "main": "build/index.js",
   "bin": {
@@ -11,8 +11,15 @@
     "run": "tsc && node build/index.js $*",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "publish",
+    "version",
+    "bump",
+    "pre-release",
+    "module",
+    "toolchain"
+  ],
+  "author": "@tremho",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^16.4.10",
