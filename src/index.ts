@@ -14,11 +14,14 @@ let comment:string = ''
 let configPath:string = ''
 const defaultConfig:any = {
     preReleaseTag: 'pre-release',
+    doPublish: true,
     projectDirs: [ '.' ]
 }
 let config = defaultConfig
 
-let preReleaseTag = 'pre-release' // todo allow change (i.e. alpha, beta)
+let preReleaseTag = 'pre-release'
+let doPublish = true
+
 
 /**
  * check the status of the local repo
@@ -156,31 +159,33 @@ function commitChanges(comment:string, gitTag?:string):Promise<unknown> {
     })
 }
 
-function npmPublish() {
-    console.log(ac.italic.green('Publishing to NPM'))
-    process.chdir(workingDirectory)
-    return executeCommand('npm publish',[]).then((rt:any) => {
-        if(rt.errStr) {
-            // npm normally reports via stdErr
-            //
-            const lines = rt.errStr.split('\n')
-            for(let ln of lines) {
-                ln = ln.trim()
-                if(ln.indexOf("ERR!") !== -1) {
-                    if(ln.indexOf("PUT") !==-1) {
-                        console.error(ac.red.bold(ln))
-                    } else {
-                        console.log(ac.grey.italic.dim(ln))
+function npmPublish():Promise<unknown> {
+    if(doPublish) {
+        console.log(ac.italic.green('Publishing to NPM'))
+        process.chdir(workingDirectory)
+        return executeCommand('npm publish', []).then((rt: any) => {
+            if (rt.errStr) {
+                // npm normally reports via stdErr
+                //
+                const lines = rt.errStr.split('\n')
+                for (let ln of lines) {
+                    ln = ln.trim()
+                    if (ln.indexOf("ERR!") !== -1) {
+                        if (ln.indexOf("PUT") !== -1) {
+                            console.error(ac.red.bold(ln))
+                        } else {
+                            console.log(ac.grey.italic.dim(ln))
+                        }
+                    } else if (ln.indexOf("📦") !== -1) {
+                        console.log(ac.green(ln))
                     }
                 }
-                else if(ln.indexOf( "📦" ) !== -1) {
-                    console.log(ac.green(ln))
-                }
+            } else if (rt.stdStr) {
+                console.log(ac.grey(rt.stdStr))
             }
-        } else if(rt.stdStr) {
-            console.log(ac.grey(rt.stdStr))
-        }
-    })
+        })
+    }
+    return Promise.resolve()
 }
 
 /**
@@ -210,15 +215,19 @@ function displayHelp() {
             ${ac.black.bold('pub-bump')} ${ac.grey('[release|bump] [-m|--comment "commit comment"] [-c|--config configPath] [--pre preReleaseTag]')}
 
              where:
-                ${ac.black('release')} - strips pre-release portion of version and tags the commit in the repository')
-                ${ac.black('bump')} ${ac.dim('default if not given')} - bumps the pre-release number up by one and commits with comment')
-                ${ac.black('-m')} or ${ac.black('--comment')} - following string argument is the commit comment saved to repository')
-                ${ac.black('-c')} or ${ac.black('--config')} specifies the path to a configuration json file')
-                ${ac.black('--pre')} - following string argument is the pre-release tag to use, overriding the config or the default ("pre-release")')
+                ${ac.black('release')} - strips pre-release portion of version and tags the commit in the repository
+                ${ac.black('bump')} ${ac.dim('default if not given')} - bumps the pre-release number up by one and commits with comment
+                ${ac.black('-m')} or ${ac.black('--comment')} - following string argument is the commit comment saved to repository
+                ${ac.black('-c')} or ${ac.black('--config')} specifies the path to a configuration json file
+                ${ac.black('--pre')} - following string argument is the pre-release tag to use, overriding the config or the default ("pre-release")
+                ${ac.black( '--publish')} - force publish to npm even if config says false
+                ${ac.black( '--no-publish')} - do not publish to npm
+                
          -------------------------------------------
             configuration file json description:
                {
                     ${ac.black('"preReleaseTag"')}: ${ac.dim('-- name to use for this series of pre-release versions (default is "pre-release")')}
+                    ${ac.black('"doPublish"')}: ${ac.dim(' -- boolean true or false to publish to npm after commit if not overridden by command line. (default is true)')}
                     ${ac.black('"projectDirs"')} : ${ac.dim('[ ... ] -- an array of relative or absolute directory locations containing the project modules you wish updated in this action')}
                }
          -------------------------------------------
@@ -275,7 +284,9 @@ function parseCLI(args:string[]) {
 }
 
 function doProcess(mode:string) {
-    let p = Promise.resolve()
+    let p:Promise<unknown> = Promise.resolve()
+    doPublish = config.doPublish
+    if(doPublish === undefined) doPublish = true
     const status = checkRepoStatus()
     if(status === 'X') {
         console.error(ac.red('no repository!'))
@@ -303,6 +314,7 @@ function doProcess(mode:string) {
 
     } else {
         console.log(ac.grey.dim.italic('nothing to commit in '+workingDirectory))
+        doPublish = false
     }
     return p
 }
