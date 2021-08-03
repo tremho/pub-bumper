@@ -12,10 +12,11 @@ let packageData:any
 let tabsfound: number
 let comment:string = ''
 let configPath:string = ''
-let config:any = {
+const defaultConfig:any = {
     preReleaseTag: 'pre-release',
     projectDirs: [ '.' ]
 }
+let config = defaultConfig
 
 let preReleaseTag = 'pre-release' // todo allow change (i.e. alpha, beta)
 
@@ -162,8 +163,13 @@ function readConfiguration(configPath:string) {
     if(!configPath) configPath = '.'
     configPath = path.resolve(configPath)
     if(fs.existsSync(configPath)) {
-        const text = fs.readFileSync(configPath).toString()
-        config = JSON.parse(text)
+        workingDirectory = path.dirname(configPath)
+        if(fs.lstatSync(configPath).isDirectory()) {
+            config = defaultConfig;
+        } else {
+            const text = fs.readFileSync(configPath).toString()
+            config = JSON.parse(text)
+        }
         preReleaseTag = config.preReleaseTag || preReleaseTag
     }
 }
@@ -269,16 +275,36 @@ function doProcess(mode:string) {
 
 const mode:string = parseCLI(process.argv.slice(2))
 if(mode === 'error') process.exit(1)
-if(configPath) {
-    readConfiguration(configPath)
-}
-for(let d of config.projectDirs) {
-    const dr = path.resolve(d)
-    if(!fs.existsSync(dr)) {
-        console.error(ac.red(`Project Directory ${dr} specified in configuration file ${configPath} does not exist`))
-        process.exit(2)
-    }
-    workingDirectory = dr
-    doProcess(mode)
-}
 
+execute(mode, comment,configPath || '.', preReleaseTag)
+
+
+// API access
+/**
+ * Executes the `pub-bump` operation
+ * @param {string} mode Must be either "release" or "bump" (or "", same as "bump")
+ * @param {string} gitComment The git commit comment to apply
+ * @param {string|object} configPathOrObject a path to a config file (json), or a config object with {preReleaseTag, projectDirs}
+ * @param {string} [pre] optional alternate pre-release tag to use other than configuration or default
+ */
+export function execute(mode:string, gitComment:string, configPathOrObject:string|object, preTag?:string) {
+    if(typeof configPathOrObject === 'string') {
+        readConfiguration(configPathOrObject)
+        workingDirectory = path.dirname(configPathOrObject)
+    } else {
+        config = configPathOrObject
+        workingDirectory = process.cwd()
+    }
+    comment = gitComment
+    if(preTag) preReleaseTag = preTag
+    const dirs = (config && config.projectDirs) || [ '.' ]
+    for(let d of dirs) {
+        const dr = path.resolve(d)
+        if (!fs.existsSync(dr)) {
+            console.error(ac.red(`Project Directory ${dr} specified in configuration file ${configPath} does not exist`))
+            process.exit(2)
+        }
+        workingDirectory = dr
+        doProcess(mode)
+    }
+}
