@@ -266,7 +266,7 @@ function parseCLI(args:string[]) {
             let tag = args[++i]
             if(tag) preReleaseTag = tag
         }
-        else if(f === '-c' || f === '--conf') {
+        else if(f === '-c' || f === '--config' || f === '-conf') {
             let conf = args[++i]
             if(conf) configPath = conf
         }
@@ -279,6 +279,7 @@ function parseCLI(args:string[]) {
         else if(f !== 'bump') {
             console.error(ac.red.bold(`unrecognized argument: ${f}`))
             mode = 'error'
+            break;
         }
         i++
     }
