@@ -23,10 +23,6 @@
   "include": [
     "**/*.ts",
     "../../Library/Caches/JetBrains/WebStorm2021.1/javascript/typings/node/12.20.18/node_modules/@types/node/globals.d.ts"
-  ],
-  "typeRoots": [
-    "./typings",
-    "./node_modules/@types"
   ]
 }
 

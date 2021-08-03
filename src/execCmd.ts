@@ -12,21 +12,21 @@ export function executeCommand(cmd:string, args:any[],  cwd = '', consolePass = 
     let cmdstr = cmd + ' ' + args.join(' ')
     // console.log('executing ', cmdstr, 'at', cwd)
     const proc = exec(cmdstr, {cwd})
-    if(proc.stdout) proc.stdout.on('data', data => {
+    if(proc.stdout) proc.stdout.on('data', (data:any) => {
       out.stdStr += data.toString()
       if(consolePass) console.log(data.toString())
     })
-    if(proc.stderr) proc.stderr.on('data', data => {
+    if(proc.stderr) proc.stderr.on('data', (data:any) => {
       out.errStr += data.toString()
       if(consolePass) console.error(data.toString())
     })
-    proc.on('error', error => {
+    proc.on('error', (error:Error) => {
       console.error(error)
       if(!out.errStr) out.errStr = error.message
       out.retcode = -1
       resolve(out)
     })
-    proc.on('close', code => {
+    proc.on('close', (code:any) => {
       out.retcode = code === null ? -1 : code
       resolve(out)
     })
