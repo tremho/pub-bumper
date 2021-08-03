@@ -161,14 +161,20 @@ function npmPublish() {
         if(rt.errStr) {
             // npm normally reports via stdErr
             //
-            console.log(rt.errStr)
-            // const lines = rt.errStr.split('\n')
-            // for(let ln of lines) {
-            //     ln = ln.trim()
-            //     if(ln.indexOf( "📦" ) !== -1) {
-            //         console.log(ac.green(ln))
-            //     }
-            // }
+            const lines = rt.errStr.split('\n')
+            for(let ln of lines) {
+                ln = ln.trim()
+                if(ln.indexOf("ERR!")) {
+                    if(ln.indexOf("PUT") !==-1) {
+                        console.error(ac.red.bold(ln))
+                    } else {
+                        console.log(ac.grey.italic.dim(ln))
+                    }
+                }
+                else if(ln.indexOf( "📦" ) !== -1) {
+                    console.log(ac.green(ln))
+                }
+            }
         } else if(rt.stdStr) {
             console.log(ac.grey(rt.stdStr))
         }
