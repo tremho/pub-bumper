@@ -164,7 +164,7 @@ function npmPublish() {
             const lines = rt.errStr.split('\n')
             for(let ln of lines) {
                 ln = ln.trim()
-                if(ln.indexOf("ERR!")) {
+                if(ln.indexOf("ERR!") !== -1) {
                     if(ln.indexOf("PUT") !==-1) {
                         console.error(ac.red.bold(ln))
                     } else {
