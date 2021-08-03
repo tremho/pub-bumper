@@ -143,7 +143,7 @@ function commitChanges(comment:string, gitTag?:string) {
         }
         if(gitTag) {
             console.log('applying tag ', gitTag)
-            executeCommand('git', ['--tag', gitTag]).then((rt:any)=> {
+            executeCommand('git', ['tag', gitTag]).then((rt:any)=> {
                 if(rt.errStr) {
                     console.error(ac.red(rt.errStr))
                 } else {
