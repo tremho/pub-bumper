@@ -161,13 +161,14 @@ function npmPublish() {
         if(rt.errStr) {
             // npm normally reports via stdErr
             //
-            const lines = rt.errStr.split('\n')
-            for(let ln of lines) {
-                ln = ln.trim()
-                if(ln.indexOf( "📦" ) !== -1) {
-                    console.log(ac.green(ln))
-                }
-            }
+            console.log(rt.errStr)
+            // const lines = rt.errStr.split('\n')
+            // for(let ln of lines) {
+            //     ln = ln.trim()
+            //     if(ln.indexOf( "📦" ) !== -1) {
+            //         console.log(ac.green(ln))
+            //     }
+            // }
         } else if(rt.stdStr) {
             console.log(ac.grey(rt.stdStr))
         }
@@ -276,7 +277,7 @@ function doProcess(mode:string) {
     if(status === 'M') {
         readPackageVersion()
         if(mode === 'release') setAsRelease()
-        else bumpVersion()
+        // else bumpVersion()
         writeUpdatedPackage()
         let gitTag = ''
         if(mode === 'release') {
