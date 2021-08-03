@@ -164,7 +164,7 @@ function npmPublish() {
             const lines = rt.errStr.split('\n')
             for(let ln of lines) {
                 ln = ln.trim()
-                if(ln.indexOf('npm notice') === 0 && ln.indexOf(preReleaseTag) !== -1) {
+                if(ln.indexOf( "📦" ) !== -1) {
                     console.log(ac.green(ln))
                 }
             }
