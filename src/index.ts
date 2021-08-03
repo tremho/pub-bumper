@@ -33,16 +33,18 @@ function checkRepoStatus():string {
 
     function checkMods(dir:string):string {
         let modified = ''
-        const entries = fs.readdirSync(dir)
+        const entries = fs.readdirSync(path.join(workingDirectory, dir))
         for(let f of entries) {
             if(f === '.git') continue
             if(!modified) {
                 let ref = path.join(dir, f)
                 let fp = path.join(workingDirectory, ref)
-                if(fs.lstatSync(fp).isDirectory()) {
-                    modified = checkMods(ref)
-                } else {
-                    modified = repo.isPathModified(ref) ? 'M' : ''
+                if(fs.existsSync(fp)) {
+                    if (fs.lstatSync(fp).isDirectory()) {
+                        modified = checkMods(ref)
+                    } else {
+                        modified = repo.isPathModified(ref) ? 'M' : ''
+                    }
                 }
             }
             if(modified) break; // one is all we need
