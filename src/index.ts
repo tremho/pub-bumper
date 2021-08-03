@@ -163,7 +163,7 @@ function commitChanges(comment:string, gitTag?:string):Promise<unknown> {
         }
         return p.then(() => {
             console.log('pushing changes')
-            executeCommand('git',['push']).then((rt:any)=> {
+            return executeCommand('git',['push']).then((rt:any)=> {
                 if(rt.errStr) {
                     console.error(ac.red(rt.errStr))
                 } else {
