@@ -159,8 +159,15 @@ function npmPublish() {
     process.chdir(workingDirectory)
     return executeCommand('npm publish',[]).then((rt:any) => {
         if(rt.errStr) {
-            console.error(ac.red(rt.errStr))
-            process.exit(4)
+            // npm normally reports via stdErr
+            //
+            const lines = rt.errStr.split('\n')
+            for(let ln of lines) {
+                ln = ln.trim()
+                if(ln.indexof('npm notice') === 0 && ln.indexOf(preReleaseTag) !== -1) {
+                    console.log(ac.green(ln))
+                }
+            }
         } else if(rt.stdStr) {
             console.log(ac.grey(rt.stdStr))
         }
