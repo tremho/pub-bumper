@@ -246,10 +246,11 @@ function parseCLI(args:string[]) {
 }
 
 function doProcess(mode:string) {
-    console.log('processing '+workingDirectory)
     const status = checkRepoStatus()
     if(status === 'X') {
         console.error(ac.red('no repository!'))
+        console.log(ac.grey(workingDirectory))
+        process.exit(3)
     }
     if(status === 'M') {
         readPackageVersion()
