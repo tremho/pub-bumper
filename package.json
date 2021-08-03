@@ -1,6 +1,6 @@
 {
   "name": "@tremho/pub-bumper",
-  "version": "0.0.1-pre-release.6",
+  "version": "0.0.1-pre-release.7",
   "description": "Intelligent version bumping for a related suite of modules in development",
   "main": "build/index.js",
   "bin": {

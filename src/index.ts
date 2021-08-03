@@ -132,10 +132,10 @@ function writeUpdatedPackage() {
  * @param comment
  * @param gitTag
  */
-function commitChanges(comment:string, gitTag?:string) {
+function commitChanges(comment:string, gitTag?:string):Promise<unknown> {
     let gitcmd = `git commit -am "${comment}"`
     console.log(ac.green(gitcmd))
-    executeCommand(gitcmd, []).then((rt:any) => {
+    return executeCommand(gitcmd, []).then((rt:any) => {
         if(rt.errStr) {
             console.error(ac.red(rt.errStr))
         } else {
@@ -143,7 +143,7 @@ function commitChanges(comment:string, gitTag?:string) {
         }
         if(gitTag) {
             console.log('applying tag ', gitTag)
-            executeCommand('git', ['tag', gitTag]).then((rt:any)=> {
+            return executeCommand('git', ['tag', gitTag]).then((rt:any)=> {
                 if(rt.errStr) {
                     console.error(ac.red(rt.errStr))
                 } else {
@@ -295,8 +295,9 @@ function doProcess(mode:string) {
             const dt = new Date()
             comment = 'no commit message: '+dt.getFullYear()+'-'+dt.getMonth()+'-'+dt.getDate()
         }
-        commitChanges(comment, gitTag)
-        p = npmPublish()
+        p = commitChanges(comment, gitTag).then(() => {
+            return npmPublish()
+        })
 
     } else {
         console.log(ac.grey.dim.italic('nothing to commit in '+workingDirectory))
