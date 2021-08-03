@@ -283,7 +283,7 @@ function doProcess(mode:string) {
     if(status === 'M') {
         readPackageVersion()
         if(mode === 'release') setAsRelease()
-        // else bumpVersion()
+        else bumpVersion()
         writeUpdatedPackage()
         let gitTag = ''
         if(mode === 'release') {
