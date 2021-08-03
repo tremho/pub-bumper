@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import {exec} from "child_process";
+
 const git = require('git-utils')
 const fs = require('fs')
 const path = require('path')
@@ -148,9 +150,10 @@ function commitChanges(comment:string, gitTag?:string):Promise<unknown> {
         } else {
             console.log(ac.grey(rt.stdStr))
         }
+        let p = Promise.resolve()
         if(gitTag) {
             console.log('applying tag ', gitTag)
-            return executeCommand('git', ['tag', gitTag]).then((rt:any)=> {
+            p =  executeCommand('git', ['tag', gitTag]).then((rt:any)=> {
                 if(rt.errStr) {
                     console.error(ac.red(rt.errStr))
                 } else {
@@ -158,6 +161,17 @@ function commitChanges(comment:string, gitTag?:string):Promise<unknown> {
                 }
             })
         }
+        return p.then(() => {
+            console.log('pushing changes')
+            executeCommand('git',['push']).then((rt:any)=> {
+                if(rt.errStr) {
+                    console.error(ac.red(rt.errStr))
+                } else {
+                    console.log(ac.grey(rt.strStr))
+                }
+            })
+        })
+
     })
 }
 
