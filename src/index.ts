@@ -134,7 +134,7 @@ function writeUpdatedPackage() {
  */
 function commitChanges(comment:string, gitTag?:string) {
     let gitcmd = `git commit -am "${comment}"`
-    console.log(gitcmd)
+    console.log(ac.green(gitcmd))
     executeCommand(gitcmd, []).then((rt:any) => {
         if(rt.errStr) {
             console.error(ac.red(rt.errStr))
