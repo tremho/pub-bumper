@@ -5,6 +5,7 @@ const fs = require('fs')
 const path = require('path')
 
 import {executeCommand} from './execCmd'
+import * as ac from "ansi-colors";
 
 let workingDirectory:string = process.cwd()
 let packageData:any
@@ -135,15 +136,15 @@ function commitChanges(comment:string, gitTag?:string) {
     console.log(gitcmd)
     executeCommand(gitcmd, []).then((rt:any) => {
         if(rt.errStr) {
-            console.error('Error:\n', rt.errStr)
+            console.error(rt.errStr)
         } else {
-            console.log('executed commit', rt.stdStr)
+            console.log(rt.stdStr)
         }
         if(gitTag) {
             console.log('applying tag ', gitTag)
             executeCommand('git', ['--tag', gitTag]).then((rt:any)=> {
                 if(rt.errStr) {
-                    console.error('Error:\n', rt.errStr)
+                    console.error(rt.errStr)
                 } else {
                     console.log(rt.strStr)
                 }
@@ -169,26 +170,28 @@ function readConfiguration(configPath:string) {
 
 function displayHelp() {
 
-    console.log('---------------------------')
-    console.log('pub-bump [release|bump] [-m|--comment "commit comment"] [-c|--config configPath] [--pre preReleaseTag]')
-    console.log()
-    console.log(' where:')
-    console.log('  release - strips pre-release portion of version and tags the commit in the repository')
-    console.log('  bump (default if not given) - bumps the pre-release number up by one and commits with comment')
-    console.log(' -m or --comment - following string argument is the commit comment saved to repository')
-    console.log(' -c or --config specifies the path to a configuration json file')
-    console.log(' --pre - following string argument is the pre-release tag to use, overriding the config or the default ("pre-release")')
-    console.log('---------------------------')
-    console.log(' configuration file json file:')
-    console.log('   {')
-    console.log('      "preReleaseTag": -- name to use for this series of pre-release versions (default is "pre-release")')
-    console.log('      "projectDirs" : [ ... ] -- an array of relative or absolute directory locations containing the project modules you wish updated in this action')
-    console.log('   }')
-    console.log('---------------------------')
-    console.log('To change a pre-release tag (either via --pre or a change in the config), you must first issue a "release",')
-    console.log('or otherwise change the version to be plain (e.g. 1.0.0) without any pre-release tags.')
-    console.log('new pre-release numbering will start against the next revision update (e.g "1.0.1-prerelease.1"')
-    console.log("============================")
+    console.log(ac.blue(`
+         -------------------------------------------
+            ${ac.black.bold('pub-bump')} ${ac.grey('[release|bump] [-m|--comment "commit comment"] [-c|--config configPath] [--pre preReleaseTag]')}
+
+             where:
+                ${ac.black('release')} - strips pre-release portion of version and tags the commit in the repository')
+                ${ac.black('bump')} ${ac.dim('default if not given')} - bumps the pre-release number up by one and commits with comment')
+                ${ac.black('-m')} or ${ac.black('--comment')} - following string argument is the commit comment saved to repository')
+                ${ac.black('-c')} or ${ac.black('--config')} specifies the path to a configuration json file')
+                ${ac.black('--pre')} - following string argument is the pre-release tag to use, overriding the config or the default ("pre-release")')
+         -------------------------------------------
+            configuration file json description:
+               {
+                    ${ac.black('"preReleaseTag"')}: ${ac.dim('-- name to use for this series of pre-release versions (default is "pre-release")')}
+                    ${ac.black('"projectDirs"')} : ${ac.dim('[ ... ] -- an array of relative or absolute directory locations containing the project modules you wish updated in this action')}
+               }
+         -------------------------------------------
+            To change a pre-release tag (either via --pre or a change in the config), you must first issue a "release",')
+            or otherwise change the version to be plain (e.g. 1.0.0) without any pre-release tags.')
+            new pre-release numbering will start against the next revision update (e.g "1.0.1-prerelease.1"')
+         ===========================================
+        `))
 
     process.exit(0)
 }
@@ -212,7 +215,6 @@ function parseCLI(args:string[]) {
         f = f.trim()
         if(f === '-m' || f === '--comment') {
             comment = args[++i]
-            console.log('comment read as', comment)
         }
         else if(f === '--pre') {
             let tag = args[++i]
@@ -229,7 +231,7 @@ function parseCLI(args:string[]) {
             mode = 'release'
         }
         else if(f !== 'bump') {
-            console.error(`unrecognized argument: ${f}`)
+            console.error(ac.red.bold(`unrecognized argument: ${f}`))
             mode = 'error'
         }
         i++
@@ -241,7 +243,7 @@ function doProcess(mode:string) {
     console.log('processing '+workingDirectory)
     const status = checkRepoStatus()
     if(status === 'X') {
-        console.error('no repository!')
+        console.error(ac.red('no repository!'))
     }
     if(status === 'M') {
         readPackageVersion()
@@ -250,10 +252,10 @@ function doProcess(mode:string) {
         writeUpdatedPackage()
         let gitTag = ''
         if(mode === 'release') {
-            console.log('RELEASE VERSION')
+            console.log(ac.green.bold('RELEASE VERSION'))
             gitTag = 'v'+packageData.version
         }
-        console.log('version set to ', packageData.version)
+        console.log(ac.italic.magenta('version set to '+ packageData.version))
         if(!comment) {
             const dt = new Date()
             comment = 'no commit message: '+dt.getFullYear()+'-'+dt.getMonth()+'-'+dt.getDate()
@@ -261,7 +263,7 @@ function doProcess(mode:string) {
         commitChanges(comment, gitTag)
 
     } else {
-        console.log('nothing to commit')
+        console.log(ac.grey.dim.italic('nothing to commit in '+workingDirectory))
     }
 }
 
@@ -273,7 +275,7 @@ if(configPath) {
 for(let d of config.projectDirs) {
     const dr = path.resolve(d)
     if(!fs.existsSync(dr)) {
-        console.error(`Project Directory ${dr} specified in configuration file ${configPath} does not exist`)
+        console.error(ac.red(`Project Directory ${dr} specified in configuration file ${configPath} does not exist`))
         process.exit(2)
     }
     workingDirectory = dr
