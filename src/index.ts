@@ -21,6 +21,7 @@ let config = defaultConfig
 
 let preReleaseTag = 'pre-release'
 let doPublish = true
+let noCommit = false
 
 
 /**
@@ -97,6 +98,7 @@ function bumpVersion():string {
         if(tag !== preReleaseTag) {
             console.error(`pre-existing version tag ${tag} differs from ${preReleaseTag}. no change made.`)
             console.log('you may only change the pre-release tag following a prior release')
+            noCommit = true
         } else {
             let pn = Number(version.substring(nn+1))
             let nv = version.substring(0, nn+1)+(pn+1)
@@ -287,6 +289,7 @@ function doProcess(mode:string) {
     let p:Promise<unknown> = Promise.resolve()
     doPublish = config.doPublish
     if(doPublish === undefined) doPublish = true
+    noCommit = false
     const status = checkRepoStatus()
     if(status === 'X') {
         console.error(ac.red('no repository!'))
@@ -308,10 +311,11 @@ function doProcess(mode:string) {
             const dt = new Date()
             comment = 'no commit message: '+dt.getFullYear()+'-'+dt.getMonth()+'-'+dt.getDate()
         }
-        p = commitChanges(comment, gitTag).then(() => {
-            return npmPublish()
-        })
-
+        if(!noCommit) {
+            p = commitChanges(comment, gitTag).then(() => {
+                return npmPublish()
+            })
+        }
     } else {
         console.log(ac.grey.dim.italic('nothing to commit in '+workingDirectory))
         doPublish = false
