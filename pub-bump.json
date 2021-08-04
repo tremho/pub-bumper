@@ -1,0 +1,11 @@
+
+{
+  "preReleaseTag": "alpha",
+  "doPublish": false,
+  "projectDirs" : [
+    "../thunderbolt-desktop",
+    "../thunderbolt-common",
+    "../thunderbolt-cli",
+    "../thunderbolt-mobile"
+  ]
+}

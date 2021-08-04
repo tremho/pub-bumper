@@ -327,6 +327,7 @@ function doProcess(mode:string) {
             comment = 'no commit message: '+dt.getFullYear()+'-'+dt.getMonth()+'-'+dt.getDate()
         }
         if(!noCommit) {
+            process.chdir(workingDirectory)
             p = commitChanges(comment, gitTag).then(() => {
                 return npmPublish()
             })
