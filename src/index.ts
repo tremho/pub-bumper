@@ -311,7 +311,7 @@ function doProcess(mode:string) {
         console.log(ac.grey(workingDirectory))
         process.exit(3)
     }
-    if(status === 'M') {
+    if(status === 'M' || mode === 'release') {
         readPackageVersion()
         if(mode === 'release') setAsRelease()
         else bumpVersion()
